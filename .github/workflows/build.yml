@@ -1,0 +1,29 @@
+name: Build CCAster
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-13
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Theos
+        uses: theos/action-setup@v1
+
+      - name: Build Package
+        run: |
+          export THEOS_PACKAGE_SCHEME=rootless
+          make clean package FINALPACKAGE=1
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CCAster-deb
+          path: packages/*.deb
