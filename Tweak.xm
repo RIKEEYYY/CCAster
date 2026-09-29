@@ -7,6 +7,10 @@
 #import <math.h>
 #import <objc/message.h>
 #import <objc/runtime.h>
+@interface UIImage (CCAster_iOS16)
++ (UIImage *)systemImageNamed:(NSString *)name variableValue:(double)value withConfiguration:(UIImageConfiguration *)configuration;
+@end
+
 
 static CFStringRef const kCCAPrefsDomain = CFSTR("com.futur3sn0w.ccaster.preferences");
 static NSString *const kCCAReloadNotification = @"com.futur3sn0w.ccaster/ReloadPrefs";
@@ -9775,6 +9779,32 @@ static NSUInteger CCADerivedVisiblePageForOverlay(UIViewController *overlay) {
 
 @end
 
+%group iOS16ModuleSize
+%hook CCUIModuleCollectionViewController
+- (CCUILayoutSize)moduleLayoutSizeForContentModuleContext:(id)context forOrientation:(NSInteger)orientation {
+    CCUILayoutSize size = %orig;
+    NSString *identifier = [context respondsToSelector:@selector(moduleIdentifier)] ? ((id (*)(id, SEL))objc_msgSend)(context, @selector(moduleIdentifier)) : nil;
+    if (identifier.length && !gCCABaseLayoutSizes[identifier]) gCCABaseLayoutSizes[identifier] = [NSValue value:&size withObjCType:@encode(CCUILayoutSize)];
+    NSArray<NSNumber *> *custom = gCCACustomSizes[identifier];
+    if (custom.count >= 2) size = (CCUILayoutSize){custom[0].unsignedIntegerValue, custom[1].unsignedIntegerValue};
+    return size;
+}
+%end
+%end
+
+%group iOS15ModuleSize
+%hook CCUIModuleCollectionViewController
+- (CCUILayoutSize)moduleLayoutSizeForExtension:(id)extension forOrientation:(NSInteger)orientation {
+    CCUILayoutSize size = %orig;
+    NSString *identifier = [extension respondsToSelector:@selector(identifier)] ? ((id (*)(id, SEL))objc_msgSend)(extension, @selector(identifier)) : nil;
+    if (identifier.length && !gCCABaseLayoutSizes[identifier]) gCCABaseLayoutSizes[identifier] = [NSValue value:&size withObjCType:@encode(CCUILayoutSize)];
+    NSArray<NSNumber *> *custom = gCCACustomSizes[identifier];
+    if (custom.count >= 2) size = (CCUILayoutSize){custom[0].unsignedIntegerValue, custom[1].unsignedIntegerValue};
+    return size;
+}
+%end
+%end
+
 %hook CCUIModuleCollectionViewController
 
 - (CCUILayoutSize)moduleLayoutSizeForContentModuleContext:(id)context forOrientation:(NSInteger)orientation {
@@ -11719,8 +11749,8 @@ static void CCAConfigureExpandedConnectivityChild(UIViewController *child) {
 
 %end
 
+%group iOS16PositionProvider
 %hook CCUIControlCenterPositionProvider
-
 - (void)regenerateRectsWithOrderedIdentifiers:(NSArray *)identifiers orderedSizes:(NSArray *)sizes {
     gCCAProviderOrder = [identifiers copy];
     NSMutableDictionary *sizeMap = [NSMutableDictionary dictionary];
@@ -11728,7 +11758,17 @@ static void CCAConfigureExpandedConnectivityChild(UIViewController *child) {
     gCCAProviderSizes = [sizeMap copy];
     %orig;
 }
+%end
+%end
 
+%group iOS15PositionProvider
+%hook CCUIControlCenterPositionProvider
+- (void)regenerateRectsWithOrderedIdentifiers:(NSArray *)identifiers {
+    gCCAProviderOrder = [identifiers copy];
+    gCCAProviderSizes = [NSMutableDictionary dictionary];
+    %orig;
+}
+%end
 %end
 
 %group CCAPresentationStateCallbacks
@@ -13662,6 +13702,22 @@ static void CCAPrefsChanged(__unused CFNotificationCenterRef center, __unused vo
         SEL dismissalSelector = NSSelectorFromString(@"_animateDismissalIsInterruption:");
         if (clickAssistantClass && class_getInstanceMethod(clickAssistantClass, dismissalSelector)) {
             %init(CCAExpandedModuleClickAssistant);
+        }
+
+        Class providerClass = NSClassFromString(@"CCUIControlCenterPositionProvider");
+        SEL regenerate16 = NSSelectorFromString(@"regenerateRectsWithOrderedIdentifiers:orderedSizes:");
+        if (class_getInstanceMethod(providerClass, regenerate16)) {
+            %init(iOS16PositionProvider);
+        } else {
+            %init(iOS15PositionProvider);
+        }
+
+        Class collectionClass = NSClassFromString(@"CCUIModuleCollectionViewController");
+        SEL layout16 = NSSelectorFromString(@"moduleLayoutSizeForContentModuleContext:forOrientation:");
+        if (class_getInstanceMethod(collectionClass, layout16)) {
+            %init(iOS16ModuleSize);
+        } else {
+            %init(iOS15ModuleSize);
         }
     }
 }
