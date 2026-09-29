@@ -1,7 +1,7 @@
-Package: com.futur3sn0w.ccaster
+Package: com.rikeeyyy.ccasster
 Icon: https://futur3sn0w.github.io/repo/icons/com.futur3sn0w.ccaster.png
 SileoDepiction: https://futur3sn0w.github.io/repo/depictions/com.futur3sn0w.ccaster.json
-Name: CCAster
+Name: CCASSter
 Version: 0.2.2
 Architecture: iphoneos-arm64
 Description: An iOS 18-inspired, editable Control Center experience for iOS 16.

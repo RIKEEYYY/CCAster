@@ -5,3 +5,4 @@ diagnostics/
 scripts/shots/
 *.deb
 *.dSYM/
+.aider*

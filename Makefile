@@ -5,12 +5,12 @@ THEOS_PACKAGE_SCHEME = rootless
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = CCAster
+TWEAK_NAME = CCASSter
 
-CCAster_FILES = Tweak.xm
-CCAster_FRAMEWORKS = UIKit CoreFoundation CFNetwork QuartzCore CoreImage
+CCASSter_FILES = Tweak.xm
+CCASSter_FRAMEWORKS = UIKit CoreFoundation CFNetwork QuartzCore CoreImage
 CCAster_PRIVATE_FRAMEWORKS = ControlCenterServices SpringBoardUIServices
-CCAster_CFLAGS = -fobjc-arc
+CCASSter_CFLAGS = -fobjc-arc
 
 INSTALL_TARGET_PROCESSES = SpringBoard
 
