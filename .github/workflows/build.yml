@@ -15,7 +15,7 @@ jobs:
           submodules: recursive
 
       - name: Setup Theos
-        uses: theos/action-setup@v1
+        uses: beerpiss/theos-action@v1
 
       - name: Build Package
         run: |
