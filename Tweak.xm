@@ -13712,7 +13712,7 @@ static void CCAPrefsChanged(__unused CFNotificationCenterRef center, __unused vo
             %init(iOS15PositionProvider);
         }
 
-        Class collectionClass = NSClassFromString(@"CCUIModuleCollectionViewController");
+        collectionClass = NSClassFromString(@"CCUIModuleCollectionViewController");
         SEL layout16 = NSSelectorFromString(@"moduleLayoutSizeForContentModuleContext:forOrientation:");
         if (class_getInstanceMethod(collectionClass, layout16)) {
             %init(iOS16ModuleSize);
