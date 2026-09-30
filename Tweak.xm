@@ -6845,9 +6845,10 @@ static NSUInteger CCADerivedVisiblePageForOverlay(UIViewController *overlay) {
         NSString *moduleIdentifier = CCAModuleIdentifier(module);
         if (moduleIdentifier.length) [present addObject:moduleIdentifier];
     }
+    // If it supports duplicate clones, try cloning first. Otherwise, if it's not currently placed in custom origins, let it be placed.
     if ([present containsObject:identifier]) {
         if ([self addOwnedDuplicateForIdentifier:identifier]) return YES;
-        return NO;
+        if (gCCACustomOrigins[identifier] != nil) return NO;
     }
 
     CCUILayoutSize size = [self catalogLayoutSizeForIdentifier:identifier];
@@ -8162,9 +8163,19 @@ static NSUInteger CCADerivedVisiblePageForOverlay(UIViewController *overlay) {
                 sourceDistance = distance;
             }
         }
+        if (!source) {
+            // Fallback: hit test under point directly across overlay subviews
+            for (UIViewController *candidate in CCACollectModuleControllers(overlay)) {
+                CGRect frame = [candidate.view convertRect:candidate.view.bounds toView:overlay.view];
+                if (CGRectContainsPoint(CGRectInset(frame, -20.0, -20.0), location)) {
+                    source = candidate;
+                    break;
+                }
+            }
+        }
         moduleView = source.view;
         sourceID = CCAModuleIdentifier(source);
-        if (!sourceID.length || !moduleView) { gesture.enabled = NO; gesture.enabled = YES; return; }
+        if (!sourceID.length || !moduleView) { return; }
         gCCADragInProgress = YES;
         gCCAActiveDragModuleView = moduleView;
         gCCAActiveDragModuleIdentifier = [sourceID copy];
