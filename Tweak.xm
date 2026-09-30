@@ -8157,8 +8157,9 @@ static NSUInteger CCADerivedVisiblePageForOverlay(UIViewController *overlay) {
         CGFloat sourceDistance = CGFLOAT_MAX;
         for (UIViewController *candidate in CCACollectModuleControllers(overlay)) {
             CGRect frame = CCAVisibleModuleFrame(candidate, overlay);
+            if (CGRectIsEmpty(frame) || candidate.view.hidden || candidate.view.alpha <= 0.01) continue;
             CGFloat distance = hypot(CGRectGetMidX(frame) - location.x, CGRectGetMidY(frame) - location.y);
-            if (CGRectContainsPoint(CGRectInset(frame, -14.0, -14.0), location) && distance < sourceDistance) {
+            if (CGRectContainsPoint(CGRectInset(frame, -20.0, -20.0), location) && distance < sourceDistance) {
                 source = candidate;
                 sourceDistance = distance;
             }
