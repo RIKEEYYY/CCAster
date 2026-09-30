@@ -41,8 +41,8 @@ static CGFloat const kCCAPageIndicatorRestStep = 39.0;
 static CGFloat const kCCAPageIndicatorScrubStep = 58.0;
 static CGFloat const kCCAPageIndicatorRestHostWidth = 42.0;
 static CGFloat const kCCAPageIndicatorScrubHostWidth = 58.0;
-static CGFloat const kCCAPageIndicatorRestRightInset = -3.0;
-static CGFloat const kCCAPageIndicatorScrubRightInset = -3.0;
+static CGFloat const kCCAPageIndicatorRestRightInset = 4.0;
+static CGFloat const kCCAPageIndicatorScrubRightInset = 8.0;
 static CGFloat const kCCAPageIndicatorMaxSlideOut = 24.0;
 // The page remains obedient to indicator thresholds, but its small parallax
 // offset trails the finger slightly. Velocity adds a deliberately tiny,
@@ -4122,10 +4122,14 @@ static NSUInteger CCADerivedVisiblePageForOverlay(UIViewController *overlay) {
         break;
     }
 
+    CGFloat safeTop = controller.view.safeAreaInsets.top;
+    BOOL isNotched = safeTop > 24.0;
+    CGFloat buttonTopOffset = isNotched ? -48.0 : (safeTop > 0 ? safeTop + 6.0 : 26.0);
+
     if (gAddButtonEnabled) {
         UIButton *add = [self cornerButtonWithSymbol:@"plus" action:@selector(addTapped:) tag:181001 materialRoot:materialRoot];
         [host addSubview:add];
-        [NSLayoutConstraint activateConstraints:@[[add.leadingAnchor constraintEqualToAnchor:host.leadingAnchor constant:22.0], [add.topAnchor constraintEqualToAnchor:host.topAnchor constant:-48.0], [add.widthAnchor constraintEqualToConstant:40.0], [add.heightAnchor constraintEqualToConstant:40.0]]];
+        [NSLayoutConstraint activateConstraints:@[[add.leadingAnchor constraintEqualToAnchor:host.leadingAnchor constant:22.0], [add.topAnchor constraintEqualToAnchor:host.topAnchor constant:buttonTopOffset], [add.widthAnchor constraintEqualToConstant:40.0], [add.heightAnchor constraintEqualToConstant:40.0]]];
     }
     if (gPowerButtonEnabled) {
         UIButton *power = [self cornerButtonWithSymbol:@"power" action:@selector(ignoreTap:) tag:181002 materialRoot:materialRoot];
@@ -4134,7 +4138,7 @@ static NSUInteger CCADerivedVisiblePageForOverlay(UIViewController *overlay) {
         hold.minimumPressDuration = 0.75;
         [power addGestureRecognizer:hold];
         [host addSubview:power];
-        [NSLayoutConstraint activateConstraints:@[[power.trailingAnchor constraintEqualToAnchor:host.trailingAnchor constant:-22.0], [power.topAnchor constraintEqualToAnchor:host.topAnchor constant:-48.0], [power.widthAnchor constraintEqualToConstant:40.0], [power.heightAnchor constraintEqualToConstant:40.0]]];
+        [NSLayoutConstraint activateConstraints:@[[power.trailingAnchor constraintEqualToAnchor:host.trailingAnchor constant:-22.0], [power.topAnchor constraintEqualToAnchor:host.topAnchor constant:buttonTopOffset], [power.widthAnchor constraintEqualToConstant:40.0], [power.heightAnchor constraintEqualToConstant:40.0]]];
     }
     // The provider-driven collection rebuild replaces the header pocket, so
     // this host can be re-created mid-session. When Control Center is already
@@ -12123,9 +12127,7 @@ static void CCAConfigureExpandedConnectivityChild(UIViewController *child) {
         [animator addCompletion:^(UIViewAnimatingPosition finalPosition) {
             if (transitionGeneration != gCCAExpansionDismissalGeneration) return;
             gCCAExpansionDismissalAnimatorFinished = YES;
-            if (finalPosition != UIViewAnimatingPositionEnd) {
-                gCCAExpansionDismissalDidClose = YES;
-            }
+            gCCAExpansionDismissalDidClose = YES;
             CCACompleteGenericExpansionDismissalIfReady();
         }];
     } else if (usesGenericTransition) {
